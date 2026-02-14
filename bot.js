@@ -1,31 +1,68 @@
 const mineflayer = require('mineflayer');
 const config = require('./config.json');
+const express = require('express'); // Added Express
+const app = express(); // Initialize Express
 
-const bot = mineflayer.createBot({
-  host: config.serverHost,
-  port: config.serverPort,
-  username: config.botUsername,
-  auth: 'offline',
-  version: false,
-  viewDistance: config.botChunk
+process.env.DEBUG = 'mineflayer' 
+
+// --- WEB SERVER FOR UPTIMEROBOT ---
+// This tells UptimeRobot "Yes, I am still awake!"
+app.get('/', (req, res) => {
+  res.send('Bot is online and moving!');
 });
 
-let movementPhase = 0;
+// Replit uses port 3000 to trigger the "Webview" window
+app.listen(3000, () => {
+  console.log('🌐 Web server is running on port 3000');
+});
+
+// --- BOT CONFIGURATION ---
 const STEP_INTERVAL = 1500;
-const STEP_SPEED    = 1;
 const JUMP_DURATION = 500;
 
-bot.on('spawn', () => {
-  setTimeout(() => {
-    bot.setControlState('sneak', true);
-    console.log(`✅ ${config.botUsername} is Ready!`);
-  }, 3000);
+let bot;
+let movementPhase = 0;
 
-  setTimeout(movementCycle, STEP_INTERVAL);
-});
+function createBot() {
+  console.log('🚀 Connecting to server...');
+
+  bot = mineflayer.createBot({
+    host: config.serverHost,
+    port: config.serverPort,
+    username: config.botUsername,
+    auth: 'offline',
+    version: false,
+    viewDistance: config.botChunk
+  });
+
+  bot.on('spawn', () => {
+    console.log(`✅ ${config.botUsername} has spawned!`);
+    bot.setControlState('sneak', true);
+    // Restart the movement cycle on spawn
+    setTimeout(movementCycle, STEP_INTERVAL);
+  });
+
+  bot.on('error', (err) => {
+    console.error('⚠️ Error:', err.message);
+  });
+
+    bot.on('kicked', (reason) => console.log('Kicked for:', reason));
+    bot.on('end', (reason) => {
+      console.log('Disconnected:', reason);
+      // Wait longer to avoid throttling
+      setTimeout(createBot, 30000); 
+
+    // Clear old instance to prevent memory leaks
+    bot = null; 
+    setTimeout(createBot, 5000);
+  });
+}
 
 function movementCycle() {
-  if (!bot.entity) return;
+  // Check if bot exists and has an entity (meaning it is fully spawned)
+  if (!bot || !bot.entity) {
+    return;
+  }
 
   switch (movementPhase) {
     case 0:
@@ -43,7 +80,7 @@ function movementCycle() {
       bot.setControlState('back', false);
       bot.setControlState('jump', true);
       setTimeout(() => {
-        bot.setControlState('jump', false);
+        if (bot && bot.setControlState) bot.setControlState('jump', false);
       }, JUMP_DURATION);
       break;
     case 3:
@@ -54,13 +91,8 @@ function movementCycle() {
   }
 
   movementPhase = (movementPhase + 1) % 4;
-
   setTimeout(movementCycle, STEP_INTERVAL);
 }
 
-bot.on('error', (err) => {
-  console.error('⚠️ Error:', err);
-});
-bot.on('end', () => {
-  console.log('⛔️ Bot Disconnected!');
-});
+// Start the bot
+createBot();
