@@ -12,7 +12,8 @@ app.get('/', (req, res) => {
 });
 
 // Replit uses port 3000 to trigger the "Webview" window
-app.listen(3000, () => {
+//koyeb uses 8000
+app.listen(8000, () => {
   console.log('🌐 Web server is running on port 3000');
 });
 
