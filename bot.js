@@ -62,10 +62,16 @@ function createBot() {
 function movementCycle() {
   if (!bot || !bot.entity) return;
 
-  // Randomly look around to simulate human activity
-  const yaw = Math.random() * Math.PI * 2;
-  const pitch = (Math.random() - 0.5) * Math.PI;
-  bot.look(yaw, pitch);
+  // 1. Slow down head movements (Themis hates instant snaps)
+  const yaw = bot.entity.yaw + (Math.random() - 0.5);
+  const pitch = (Math.random() - 0.5);
+  bot.look(yaw, pitch, false); 
+
+  // 2. Swing arm to look "human"
+  bot.swingArm();
+
+  // 3. Clear states before starting new ones to avoid "conflicting packets"
+  bot.clearControlStates();
 
   switch (movementPhase) {
     case 0:
@@ -73,21 +79,20 @@ function movementCycle() {
       break;
     case 1:
       bot.setControlState('back', true);
-      // Occasional chat to reset some server-side idle timers
-      if (Math.random() > 0.8) bot.chat('/help'); 
       break;
     case 2:
       bot.setControlState('jump', true);
-      setTimeout(() => { if (bot) bot.setControlState('jump', false); }, JUMP_DURATION);
-      break;
-    default:
-      bot.clearControlStates();
+      setTimeout(() => { if (bot) bot.setControlState('jump', false); }, 400);
       break;
   }
 
   movementPhase = (movementPhase + 1) % 4;
-  setTimeout(movementCycle, STEP_INTERVAL);
+  
+  // 4. Randomized interval (3-6 seconds) to bypass pattern detection
+  const nextTick = 3000 + (Math.random() * 3000);
+  setTimeout(movementCycle, nextTick);
 }
+
 
 
 // Start the bot
