@@ -50,12 +50,12 @@ function createBot() {
     bot.on('kicked', (reason) => console.log('Kicked for:', reason));
     bot.on('end', (reason) => {
       console.log('Disconnected:', reason);
-      // Wait longer to avoid throttling
-      setTimeout(createBot, 30000); 
+
 
     // Clear old instance to prevent memory leaks
-    bot = null; 
-    setTimeout(createBot, 5000);
+    bot = null;
+            // Wait longer to avoid throttling
+      setTimeout(createBot, 30000); 
   });
 }
 
