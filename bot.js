@@ -60,40 +60,35 @@ function createBot() {
 }
 
 function movementCycle() {
-  // Check if bot exists and has an entity (meaning it is fully spawned)
-  if (!bot || !bot.entity) {
-    return;
-  }
+  if (!bot || !bot.entity) return;
+
+  // Randomly look around to simulate human activity
+  const yaw = Math.random() * Math.PI * 2;
+  const pitch = (Math.random() - 0.5) * Math.PI;
+  bot.look(yaw, pitch);
 
   switch (movementPhase) {
     case 0:
       bot.setControlState('forward', true);
-      bot.setControlState('back', false);
-      bot.setControlState('jump', false);
       break;
     case 1:
-      bot.setControlState('forward', false);
       bot.setControlState('back', true);
-      bot.setControlState('jump', false);
+      // Occasional chat to reset some server-side idle timers
+      if (Math.random() > 0.8) bot.chat('/help'); 
       break;
     case 2:
-      bot.setControlState('forward', false);
-      bot.setControlState('back', false);
       bot.setControlState('jump', true);
-      setTimeout(() => {
-        if (bot && bot.setControlState) bot.setControlState('jump', false);
-      }, JUMP_DURATION);
+      setTimeout(() => { if (bot) bot.setControlState('jump', false); }, JUMP_DURATION);
       break;
-    case 3:
-      bot.setControlState('forward', false);
-      bot.setControlState('back', false);
-      bot.setControlState('jump', false);
+    default:
+      bot.clearControlStates();
       break;
   }
 
   movementPhase = (movementPhase + 1) % 4;
   setTimeout(movementCycle, STEP_INTERVAL);
 }
+
 
 // Start the bot
 createBot();
