@@ -1,4 +1,3 @@
-//test
 const mineflayer = require('mineflayer');
 const config = require('./config.json');
 const express = require('express'); // Added Express
