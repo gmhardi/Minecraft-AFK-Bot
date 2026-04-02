@@ -1,6 +1,6 @@
 {
-  "serverHost": "maelstrom.progamer.me",
-  "serverPort": 47063,
-  "botUsername": "CabbageK",
+  "serverHost": "maelstrom.mcsh.io",
+  "serverPort": 25565,
+  "botUsername": "afkBot",
   "botChunk": 1
 }
